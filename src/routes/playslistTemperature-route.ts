@@ -1,12 +1,13 @@
 import express, { Request, Response, Router } from "express";
 import { getTemperatureByCity, getTemperatureByCoord } from '../services/openweather';
-import { getTrackByTemperature } from "../services/spotify";
+import { getPlaylistByTemperature } from "../services/spotify";
 import { PlaylistTemperature } from '../models/PlayslistTemperature';
 import { sendError } from "../utils/response-error-utils";
 
 
 var route = express.Router();
 
+// função que simplifica a resposta de saída.
 function formatOutput(playlist: any, temperature: number): PlaylistTemperature {
     let playlistNames = [];
     for (let i = 0; i < playlist.body.tracks.items.length; i++) {
@@ -20,13 +21,15 @@ function formatOutput(playlist: any, temperature: number): PlaylistTemperature {
     return playlistTemperature;
 }
 
+// rota principal que procura a playlist de acordo com a temperatura.
 route.get('/musicByTemp/:search', (req: Request, res: Response) => {
+    // verifica se é uma pesquisa por cidade ou uma pesquisa por coordenadas.
     const regexLatLon: RegExp = /^(\-?\d+(\.\d+)?),\s*(\-?\d+(\.\d+)?)$/;
     const search: string = req.params.search;
     let searchMode = regexLatLon.test(search) ? getTemperatureByCoord : getTemperatureByCity;
     searchMode(search)
         .then((temperature: number) => {
-            getTrackByTemperature(temperature)
+            getPlaylistByTemperature(temperature)
                 .then((playlist: any) => {
                     let playlistTemperature = formatOutput(playlist, temperature);
                     res.status(200).json(playlistTemperature);
