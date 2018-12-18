@@ -1,36 +1,42 @@
-import express, { Request, Response } from "express";
-import { getTemperatureByCity } from "../services/openweather";
+import express, { Request, Response, Router } from "express";
+import { getTemperatureByCity, getTemperatureByCoord } from '../services/openweather';
 import { getTrackByTemperature } from "../services/spotify";
 import { PlaylistTemperature } from '../models/PlayslistTemperature';
+import { sendError } from "../utils/response-error-utils";
 
 
 var route = express.Router();
 
-route.get('/musicByTempCoord/:city', (req: Request, res: Response) => {
-    const city: string = req.params.city;
-    getTemperatureByCity(city)
+function formatOutput(playlist: any, temperature: number): PlaylistTemperature {
+    let playlistNames = [];
+    for (let i = 0; i < playlist.body.tracks.items.length; i++) {
+        const track = playlist.body.tracks.items[i];
+        playlistNames.push(track.name);
+    }
+    let playlistTemperature: PlaylistTemperature = {
+        temperature: temperature,
+        playlist: playlistNames
+    }
+    return playlistTemperature;
+}
+
+route.get('/musicByTemp/:search', (req: Request, res: Response) => {
+    const regexLatLon: RegExp = /^(\-?\d+(\.\d+)?),\s*(\-?\d+(\.\d+)?)$/;
+    const search: string = req.params.search;
+    let searchMode = regexLatLon.test(search) ? getTemperatureByCoord : getTemperatureByCity;
+    searchMode(search)
         .then((temperature: number) => {
             getTrackByTemperature(temperature)
                 .then((playlist: any) => {
-                    let playlistNames = [];
-                    for (let i = 0; i < playlist.body.tracks.items.length; i++) {
-                        const track = playlist.body.tracks.items[i];
-                        playlistNames.push(track.name);
-                    }
-                    let playlistTemperature: PlaylistTemperature = {
-                        temperature: temperature,
-                        playlist: playlistNames
-                    }
+                    let playlistTemperature = formatOutput(playlist, temperature);
                     res.status(200).json(playlistTemperature);
                 })
                 .catch((error: any) => {
-                    res.status(500).json({msg: "Failed to search playlist."});
-                    console.log(error);
+                    sendError(error, "Failed to search playlist", 500, res);
                 });
         })
         .catch((error: any) => {
-            res.status(500).json({msg: "Failed to search temperature."});
-            console.log(error);
+            sendError(error, "Failed to search localization", 500, res);
         })
 });
 
