@@ -16,19 +16,11 @@ export async function getTrackByTemperature(temperature: number) {
     let data = await spotify.clientCredentialsGrant();
     let grant = <SpotifyGrant>data.body;
     spotify.setAccessToken(grant.access_token);
-    let category: string;
-    if (temperature < 10) category = "classical"
-    else if (temperature < 15) category = "rock"
-    else if (temperature <= 30) category = "pop"
-    else category = "party";
-    spotify.searchTracks(category)
-        .then((result: any) => {
-            result.body.tracks.items.forEach((element: any) => {
-                console.log(element.name);    
-            });
-            
-        })
-        .catch((err: any) => {
-            console.log(err);
-        });
+    let genre: string;
+    if (temperature < 10) genre = "classical"
+    else if (temperature < 15) genre = "rock"
+    else if (temperature <= 30) genre = "pop"
+    else genre = "party";
+    const offset = Math.floor((Math.random() * 1000)) + 1;
+    return spotify.searchTracks(`genre:${genre}`, {offset: offset});
 }

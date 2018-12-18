@@ -1,10 +1,11 @@
-import { getTemperatureByCity } from "./services/openweather";
-import { getTrackByTemperature } from "./services/spotify";
+import express from "express";
+import playlistTemperatureRoute from "./routes/playslistTemperature-route";
 
-getTemperatureByCity("São Carlos")
-    .then(result => console.log(result))
-    .catch(err => {
-        console.log(err);
-    });
+var app = express();
+const port = process.env.PORT || 3000;
 
-getTrackByTemperature(20);
+app.listen(port, () => {
+    console.log(`Server is running on port ${port}`);
+});
+
+app.use(playlistTemperatureRoute);
