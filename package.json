@@ -4,6 +4,10 @@
   "main": "index.js",
   "author": "Klausner Augusto",
   "license": "MIT",
+  "scripts": {
+    "start": "node ./dist/app.js",
+    "build": "tsc"
+  },
   "dependencies": {
     "dotenv": "^6.2.0",
     "express": "^4.16.4",
