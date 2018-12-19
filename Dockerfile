@@ -5,6 +5,4 @@ COPY ["src/", "package.json", "tsconfig.json", "./"]
 RUN npm install -g typescript
 RUN npm install
 RUN tsc
-RUN ls
-EXPOSE 3000
 CMD npm start
